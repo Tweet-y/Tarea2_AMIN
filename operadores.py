@@ -1,5 +1,7 @@
 """Biblioteca de operadores para Ant Colony System (ACS) aplicado a TSP."""
 
+import math
+
 def leer_instancia(ruta_archivo):
     """Lee coordenadas de ciudades desde archivo TSPLIB o formato texto.
     
@@ -36,3 +38,41 @@ def leer_instancia(ruta_archivo):
                         continue
 
     return coordenadas
+
+
+def matriz_distancias(coordenadas):
+    """Calcula matriz de distancias euclidianas redondeadas segun norma TSPLIB (EUC_2D).
+    
+    d_ij = int(sqrt((xi - xj)^2 + (yi - yj)^2) + 0.5)
+    """
+    n = len(coordenadas)
+    d = [[0] * n for _ in range(n)]
+    for i in range(n):
+        xi, yi = coordenadas[i]
+        for j in range(i + 1, n):
+            xj, yj = coordenadas[j]
+            dist = int(math.hypot(xi - xj, yi - yj) + 0.5)
+            d[i][j] = dist
+            d[j][i] = dist
+    return d
+
+
+def matriz_visibilidad(D):
+    """Calcula visibilidad heuristica eta_ij = 1 / d_ij para i != j."""
+    n = len(D)
+    eta = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            if i != j and D[i][j] > 0:
+                eta[i][j] = 1.0 / D[i][j]
+    return eta
+
+
+def evaluar_ruta(ruta, D):
+    """Calcula el costo total de un ciclo cerrado para la ruta dada."""
+    costo = 0
+    n = len(ruta)
+    for k in range(n):
+        costo += D[ruta[k]][ruta[(k + 1) % n]]
+    return costo
+
