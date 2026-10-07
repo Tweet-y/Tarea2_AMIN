@@ -1,4 +1,5 @@
 """Biblioteca de operadores para Ant Colony System (ACS) aplicado a TSP."""
+import numpy as np
 
 def leer_instancia(ruta_archivo):
     """Lee coordenadas de ciudades desde archivo TSPLIB o formato texto.
@@ -36,3 +37,34 @@ def leer_instancia(ruta_archivo):
                         continue
 
     return coordenadas
+
+## Verificamos si lee el archivo 
+## print(leer_instancia("datos/berlin52.tsp"))
+
+## Calculamos la matriz de distancia
+def calcular_distancia(coordenadas):
+    puntos = np.array(coordenadas)
+    diferencias = puntos[:, np.newaxis, :] - puntos[np.newaxis, :, :]
+    
+    return np.rint(np.sqrt((diferencias ** 2).sum(axis=2)))
+
+coordenadas = leer_instancia("datos/berlin52.tsp")
+distancias = calcular_distancia(coordenadas)
+
+## Pruba distancia
+## print(distancias.shape)
+## print(distancias[0][1])
+## print(distancias[0][4])
+
+## Calculamos el costo total de una ruta
+def calcular_costos(ruta, distancias):
+    costo = 0
+    for i in range (len(ruta)):
+        costo += distancias[ruta[i]][ruta[(i + 1) % len(ruta)]]
+    
+    return costo
+
+## Prueba costos
+## ruta = list(range(52))
+## print(calcular_costos(ruta, distancias))
+## print(calcular_costos([0, 1, 0, 1], distancias))
