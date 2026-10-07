@@ -48,10 +48,6 @@ def calcular_distancia(coordenadas):
     return np.rint(np.sqrt((diferencias ** 2).sum(axis=2)))
 
 
-# Alias de compatibilidad
-matriz_distancias = calcular_distancia
-
-
 def matriz_visibilidad(D):
     """Calcula visibilidad heuristica eta_ij = 1 / d_ij para i != j."""
     D_arr = np.asarray(D, dtype=float)
@@ -66,10 +62,6 @@ def calcular_costos(ruta, distancias):
     for i in range(n):
         costo += distancias[ruta[i]][ruta[(i + 1) % n]]
     return int(costo)
-
-
-# Alias de compatibilidad
-evaluar_ruta = calcular_costos
 
 
 def heuristica_vecino_mas_cercano(D, ciudad_inicio=0):
