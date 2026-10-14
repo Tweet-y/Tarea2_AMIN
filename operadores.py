@@ -82,14 +82,18 @@ def heuristica_vecino_mas_cercano(D, ciudad_inicio=0):
     return visitadas, costo_nn
 
 
-def inicializar_feromonas(n, tau0):
-    """Crea e inicializa la matriz de feromonas n x n con valor tau0."""
+def inicializar_feromonas(n, L_nn):
+    """Inicializa feromonas con tau0 = 1 / (n * L_nn).
+
+    L_nn es el costo devuelto por heuristica_vecino_mas_cercano.
+    """
+    tau0 = 1.0 / (n * L_nn)
     return np.full((n, n), tau0, dtype=float)
 
 
 def siguiente_ciudad(actual, no_visitadas, tau, eta, beta, q0, rng):
     """Selecciona la siguiente ciudad usando regla pseudoaleatoria proporcional de ACS (Ec. 1 y 2)."""
-    candidatas = list(no_visitadas)
+    candidatas = sorted(no_visitadas)
     if len(candidatas) == 1:
         return candidatas[0]
 
@@ -114,7 +118,7 @@ def siguiente_ciudad(actual, no_visitadas, tau, eta, beta, q0, rng):
     acum = 0.0
     for ciudad, peso in zip(candidatas, pesos):
         acum += peso
-        if acum >= r:
+        if r < acum:
             return ciudad
 
     return candidatas[-1]
