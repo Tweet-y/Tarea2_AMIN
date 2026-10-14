@@ -3,7 +3,7 @@
 import numpy as np
 
 
-def leer_instancia(ruta_archivo):
+def leer_instancia(ruta):
     """Lee coordenadas de ciudades desde archivo TSPLIB o formato texto.
 
     Retorna: lista de tuplas (x, y) indexadas desde 0.
@@ -11,7 +11,7 @@ def leer_instancia(ruta_archivo):
     coordenadas = []
     en_seccion_coords = False
 
-    with open(ruta_archivo, "r", encoding="utf-8") as f:
+    with open(ruta, "r", encoding="utf-8") as f:
         for linea in f:
             texto = linea.strip()
             if not texto:
@@ -41,27 +41,28 @@ def leer_instancia(ruta_archivo):
     return coordenadas
 
 
-def calcular_distancia(coordenadas):
-    """Calcula matriz de distancias euclidianas redondeadas segun norma TSPLIB usando NumPy."""
-    puntos = np.array(coordenadas)
+def matriz_distancias(coords):
+    """Calcula distancias EUC_2D con el redondeo TSPLIB: floor(d + 0.5)."""
+    puntos = np.asarray(coords, dtype=float)
     diferencias = puntos[:, np.newaxis, :] - puntos[np.newaxis, :, :]
-    return np.rint(np.sqrt((diferencias ** 2).sum(axis=2)))
+    return np.floor(np.sqrt((diferencias ** 2).sum(axis=2)) + 0.5)
 
 
 def matriz_visibilidad(D):
-    """Calcula visibilidad heuristica eta_ij = 1 / d_ij para i != j."""
+    """Calcula 1 / d_ij; usa 0 en la diagonal y 1 entre ciudades coincidentes."""
     D_arr = np.asarray(D, dtype=float)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        return np.where(D_arr > 0, 1.0 / D_arr, 0.0)
+    eta = np.divide(1.0, D_arr, out=np.ones_like(D_arr), where=D_arr > 0)
+    np.fill_diagonal(eta, 0.0)
+    return eta
 
 
-def calcular_costos(ruta, distancias):
+def evaluar_ruta(ruta, D):
     """Calcula el costo total de un ciclo cerrado para la ruta dada."""
     costo = 0
     n = len(ruta)
     for i in range(n):
-        costo += distancias[ruta[i]][ruta[(i + 1) % n]]
-    return int(costo)
+        costo += D[ruta[i], ruta[(i + 1) % n]]
+    return costo
 
 
 def heuristica_vecino_mas_cercano(D, ciudad_inicio=0):
@@ -72,12 +73,12 @@ def heuristica_vecino_mas_cercano(D, ciudad_inicio=0):
     actual = ciudad_inicio
 
     while no_visitadas:
-        siguiente = min(no_visitadas, key=lambda c: D[actual][c])
+        siguiente = min(no_visitadas, key=lambda c: D[actual, c])
         visitadas.append(siguiente)
         no_visitadas.remove(siguiente)
         actual = siguiente
 
-    costo_nn = calcular_costos(visitadas, D)
+    costo_nn = evaluar_ruta(visitadas, D)
     return visitadas, costo_nn
 
 
@@ -140,7 +141,7 @@ def actualizar_global(tau, mejor_ruta, mejor_costo, alfa):
 
 if __name__ == "__main__":
     coords = leer_instancia("datos/berlin52.tsp")
-    dist = calcular_distancia(coords)
+    dist = matriz_distancias(coords)
     print("Dimension distancias:", dist.shape)
     print("d(0, 1):", dist[0, 1])
-    print("Costo ruta [0..51]:", calcular_costos(list(range(52)), dist))
+    print("Costo ruta [0..51]:", evaluar_ruta(list(range(52)), dist))
