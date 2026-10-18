@@ -1,150 +1,165 @@
-# Sistema de Colonia de Hormigas (ACS) para el Problema del Vendedor Viajero (TSP)
-## Pre Proyecto 2 - Algoritmos Metaheurísticos Inspirados en la Naturaleza (AMIN)
+# Proyecto 2: PFSP con AG, AM y ACS
 
-Implementación modular de la metaheurística **Ant Colony System (ACS)** (Dorigo & Gambardella, 1997) aplicada a la instancia **Berlin52** de TSPLIB, desarrollada siguiendo el principio **KISS** (*Keep It Simple*) sin hiperingeniería.
+Algoritmos Metaheurísticos Inspirados en la Naturaleza (AMIN), UCSC.
 
----
+Comparación de tres metaheurísticas sobre el *Permutation Flow Shop Scheduling Problem*
+(PFSP), minimizando el makespan $C_{max}$ en instancias de Taillard:
 
-## 1. Organización y Modularización
+- **AG**: Algoritmo Genético.
+- **AM**: Algoritmo Memético (AG + búsqueda local por inserción).
+- **ACS**: Ant Colony System, adaptado del preproyecto TSP (Berlin52).
 
-El proyecto separa responsabilidades en dos componentes centrales:
+## Requisitos
 
-- **`acs.py`**: Explica **qué** hace el algoritmo (flujo de control, ciclo iterativo de hormigas, parámetros CLI y exportación estructurada).
-- **`operadores.py`**: Explica **cómo** se ejecutan las operaciones matemáticas y estocásticas (distancias NumPy EUC_2D, visibilidad, regla pseudoaleatoria $q_0$, decaimiento local y refuerzo global).
-- **`tests.py`**: Pruebas unitarias nativas con `assert` (11 pruebas sin dependencias externas).
-- **`graficar.py`**: Visualización de curvas de convergencia y mapeo 2D del recorrido.
-
-### Estructura de Carpetas
-
-```
-Tarea2_AMIN/
-├── acs.py                  # Algoritmo principal ACS y CLI
-├── operadores.py           # Biblioteca de operadores de soporte y ACS
-├── tests.py                # Suite de 11 pruebas unitarias
-├── graficar.py             # Generador de gráficos
-├── datos/
-│   └── berlin52.tsp        # Coordenadas oficiales TSPLIB Berlin52
-├── resultados/
-│   └── acs_berlin52.csv    # Registro de corrida por iteración
-└── graficos/
-    ├── convergencia_berlin52.png  # Curva de convergencia
-    └── ruta_berlin52.png          # Mapa 2D de la mejor ruta
-```
-
----
-
-## 2. Requisitos e Instalación
-
-Desarrollado en Python 3.9+. Requiere `numpy` para cálculo vectorizado y `matplotlib` para visualización:
+Python 3.10 o superior, con numpy y matplotlib (este último solo para `graficar.py`).
 
 ```bash
 pip install numpy matplotlib
 ```
 
----
+## Estructura
 
-## 3. Instrucciones de Ejecución
-
-### A. Ejecutar Algoritmo ACS
-
-Formato posicional según requerimiento del enunciado:
-
-```bash
-python acs.py <instancia> <n_hormigas> <iteraciones> <alfa> <beta> <q0> <semilla> <resultados.csv>
+```
+ag.py            AG: bucle del algoritmo y CLI (con frec_bl > 0 es el AM)
+am.py            AM: CLI que reutiliza ag.py con búsqueda local
+acs.py           ACS: bucle del algoritmo y CLI
+operadores.py    Operadores: lectura, Cmax, RPD, CSV y operadores de AG, AM y ACS
+tests.py         Pruebas de los operadores y de los tres algoritmos
+experimentos.py  Batería comparativa: 3 algoritmos x 3 instancias x 10 semillas
+graficar.py      Curvas de convergencia a partir de experimentos.csv
+datos/           Instancias de Taillard: tai20_5, tai50_10, tai100_10
+resultados/      CSV de corridas y resumen
+graficos/        Curvas de convergencia (PNG)
 ```
 
-**Ejemplo de ejecución (Berlin52):**
+Los scripts `ag.py`, `am.py` y `acs.py` describen **qué** hace cada algoritmo.
+`operadores.py` describe **cómo** se hace cada operación.
+
+## Uso
+
+Cada algoritmo recibe sus parámetros en orden fijo:
 
 ```bash
-python acs.py datos/berlin52.tsp 10 100 0.1 2.0 0.9 42 resultados/acs_berlin52.csv
+python ag.py  instancia semilla poblacion iteraciones pc pm salida.csv
+python am.py  instancia semilla poblacion iteraciones pc pm frec_bl salida.csv
+python acs.py instancia semilla hormigas iteraciones alfa beta q0 salida.csv
 ```
 
-**Parámetros:**
-- `instancia`: Ruta al archivo TSPLIB (`datos/berlin52.tsp`).
-- `n_hormigas`: Cantidad de hormigas por iteración ($m$).
-- `iteraciones`: Número de ciclos constructivos.
-- `alfa` ($\alpha$): Factor de evaporación/tasa de aprendizaje global (típico: `0.1`).
-- `beta` ($\beta$): Peso de la información heurística/visibilidad (típico: `2.0` a `5.0`).
-- `q0` ($q_0$): Probabilidad de explotación vs exploración (típico: `0.9`).
-- `semilla`: Semilla de números aleatorios para reproducibilidad.
-- `resultados.csv`: Ruta del archivo CSV de salida.
-
-### B. Ejecutar Suite de Pruebas
-
-Pruebas unitarias completas de todos los operadores:
+Ejemplos (parámetros usados en los experimentos):
 
 ```bash
-python tests.py
+python ag.py  datos/tai20_5.txt 12345 50 200 0.8 0.1 resultados/res_ag.csv
+python am.py  datos/tai20_5.txt 12345 50 200 0.8 0.1 10 resultados/res_am.csv
+python acs.py datos/tai20_5.txt 12345 50 200 0.1 1.0 0.9 resultados/res_acs.csv
 ```
 
-### C. Generar Gráficos
-
-Genera la curva de convergencia y el mapa 2D a partir del CSV:
-
-```bash
-python graficar.py resultados/acs_berlin52.csv
-```
-
----
-
-## 4. Resultados Experimentales (Berlin52)
-
-Configuración base ejecutada:
-- **Hormigas**: 10
-- **Iteraciones**: 100
-- **Parámetros**: $\alpha = 0.1$, $\beta = 2.0$, $q_0 = 0.9$, $\rho = 0.1$
-- **Semilla**: 42
-
-| Métrica | Valor |
-| :--- | :--- |
-| **Costo Vecino Más Cercano ($L_{nn}$)** | 10323 |
-| **Mejor Costo Encontrado (ACS)** | 8857 |
-| **Óptimo Conocido TSPLIB** | 7542 |
-| **Tiempo de Ejecución** | ~0.65 s |
-
-Gráficos generados:
-- Curva de convergencia: `graficos/convergencia_berlin52.png`
-- Ruta resultante: `graficos/ruta_berlin52.png`
-
----
-
-## 5. Transferencia a un Problema Más Complejo: Permutation Flow Shop (PFSP)
-
-Análisis de transferencia metodológica desde TSP hacia **PFSP (Taillard)**:
-
-### Tabla Comparativa
-
-| Aspecto | Berlin52 (TSP) | Permutation Flow Shop (PFSP) |
+| Parámetro | Significado | Rango |
 | :--- | :--- | :--- |
-| **Dominio** | Ruteo en grafo de ciudades | Secuenciación de $N$ trabajos en $M$ máquinas |
-| **Representación** | Permutación cíclica (arista de retorno $c_{n-1} \to c_0$) | Permutación lineal sin retorno $\pi = [j_1, j_2, \dots, j_n]$ |
-| **Semántica Feromona ($\tau$)** | $\tau_{i, j}$: Deseabilidad de recorrer la arista $i \to j$ | $\tau_{k, j}$: Deseabilidad de asignar el **trabajo $j$** en la **posición $k$** |
-| **Visibilidad Heurística ($\eta$)** | $\eta_{ij} = 1 / d_{ij}$ (inversa de distancia euclidiana) | $\eta_j = 1 / \sum_{m=1}^{M} p_{j, m}$ (regla SPT: trabajos más cortos primero) |
-| **Función Objetivo** | Distancia euclidiana total (suma de aristas) | Makespan ($C_{\max}$): tiempo de completación del último trabajo |
-| **Complejidad Evaluación** | $O(N)$ suma lineal | $O(N \cdot M)$ programación dinámica |
+| `instancia` | Archivo Taillard: `n m semilla UB LB` y luego m filas de n tiempos | archivo existente |
+| `semilla` | Semilla del generador aleatorio | entero |
+| `poblacion` / `hormigas` | Individuos por generación / hormigas por iteración | ≥ 1 |
+| `iteraciones` | Generaciones (AG, AM) o ciclos de la colonia (ACS) | ≥ 1 |
+| `pc`, `pm` | Probabilidad de cruce y de mutación | [0, 1] |
+| `frec_bl` | Búsqueda local sobre el mejor individuo cada `frec_bl` generaciones | ≥ 1 |
+| `alfa` | Evaporación de feromona, en la actualización local y en la global | (0, 1] |
+| `beta` | Peso de la visibilidad η | ≥ 0 |
+| `q0` | Probabilidad de explotación en la regla de transición | [0, 1] |
 
-### Respuestas a las Preguntas Guía (Sección 7 del Enunciado)
+Cada ejecución muestra el progreso cada 10 % de las iteraciones y al final la mejor
+secuencia, el makespan, el RPD y el tiempo. Si un parámetro no es válido, el script
+termina con un mensaje que indica cuál y por qué.
 
-#### 1. ¿Qué partes de `acs.py` podrían mantenerse?
-Se mantiene intacto el **esqueleto del bucle principal**:
-- Inicialización de hormigas, parámetros ($\alpha, \beta, q_0, \rho$) y matriz de feromonas.
-- Bucle de iteraciones con construcción paso a paso de cada hormiga.
-- Actualización local de feromona en cada paso de asignación.
-- Detección y almacenamiento de la mejor solución global ($L_{gb}$).
-- Actualización global de feromona al cierre de la iteración.
-- Esquema de logging a CSV y reproducibilidad mediante semilla.
+**Reproducibilidad:** cada ejecución usa su propio `random.Random(semilla)`. Con la
+misma instancia, semilla y parámetros se obtienen el mismo makespan y la misma
+secuencia final.
 
-#### 2. ¿Qué operaciones de `operadores.py` deberían modificarse o reemplazarse?
-- **`leer_instancia`**: Reemplazar lectura de coordenadas 2D por lectura de matriz de tiempos de procesamiento $p_{j, m}$ (formato Taillard de $N$ trabajos $\times$ $M$ máquinas).
-- **`matriz_visibilidad`**: Cambiar $\eta_{ij} = 1 / d_{ij}$ por la heurística SPT (Shortest Processing Time): $\eta_j = 1 / \sum_{m=1}^M p_{jm}$.
-- **`heuristica_vecino_mas_cercano`**: Reemplazar por heurística constructiva clásica de PFSP, como la heurística **NEH** (Nawaz-Enscore-Ham), para obtener una cota base $C_{NEH}$ con la cual inicializar $\tau_0$.
-- **`actualizar_local` y `actualizar_global`**: La actualización pasa de aristas $(i, j)$ a pares posición-trabajo $(k, \pi[k])$.
+### Formato del CSV de salida
 
-#### 3. ¿Qué nueva información necesitaría representar una solución?
-- En TSP, la solución es un ciclo donde el orden relativo entre nodos adyacentes define aristas de viaje.
-- En PFSP, una solución es una **secuencia ordenada de trabajos** $\pi = [\pi_1, \pi_2, \dots, \pi_n]$ donde cada trabajo se ejecuta en el mismo orden en todas las $M$ máquinas, sin arista de cierre entre el último y el primer trabajo.
+Hay una fila por iteración, con el mismo formato para los tres algoritmos:
 
-#### 4. ¿Qué cambiaría en la función que evalúa una solución?
-- Se sustituye la suma de distancias por el cálculo del **Makespan ($C_{\max}$)** mediante la recurrencia canónica de Flow Shop:
-  $$C(j, m) = \max(C(j - 1, m), C(j, m - 1)) + p_{\pi[j], m}$$
-  donde $C(j, m)$ es el instante de finalización del trabajo en la posición $j$ sobre la máquina $m$. La función objetivo es $C(N, M)$.
+| Columna | Contenido |
+| :--- | :--- |
+| `algoritmo` | AG, AM o ACS |
+| `instancia`, `semilla`, `parametros` | Configuración de la corrida |
+| `iteracion` | 1 … iteraciones |
+| `mejor_cmax` | Mejor makespan encontrado hasta esa iteración |
+| `rpd` | $100 \cdot (C_{max} - UB) / UB$ |
+| `tiempo` | Segundos transcurridos desde el inicio |
+| `mejor_secuencia` | Trabajos separados por `-`, numerados desde 0 |
+
+## Pruebas, experimentos y gráficos
+
+```bash
+python tests.py                                # 20 pruebas con assert
+python experimentos.py                         # 90 corridas, ~13 min
+python graficar.py resultados/experimentos.csv
+```
+
+- `experimentos.py` usa las semillas 1 a 10. Escribe `resultados/experimentos.csv` (todas
+  las iteraciones) y `resultados/resumen.csv` (una fila por instancia y algoritmo), e
+  imprime la tabla resumen.
+- `graficar.py` crea `graficos/convergencia_<instancia>.png`, con la media del mejor
+  $C_{max}$ por iteración. Úsalo con `experimentos.csv`: con un CSV de una sola corrida
+  sobrescribe la figura de esa instancia.
+
+## Diseño de los algoritmos
+
+**AG:**
+- Población aleatoria de permutaciones.
+- Selección por torneo de tamaño 3.
+- Cruce OX: un tramo de padre1 conserva su lugar y el resto se completa en el orden de padre2.
+- Mutación por inserción.
+- Reemplazo generacional con elitismo: el mejor histórico reemplaza al peor hijo.
+
+**AM:** el mismo AG. Cada `frec_bl` generaciones aplica al mejor individuo una pasada
+de búsqueda local por inserción: cada trabajo se prueba en todas las posiciones y
+queda en la mejor si reduce el $C_{max}$.
+
+**ACS** (adaptación del preproyecto TSP):
+- **Grafo:** trabajo → trabajo. $\tau_{ij}$ es la deseabilidad de programar $j$
+  inmediatamente después de $i$. Es dirigida: $\tau_{ij} \neq \tau_{ji}$.
+- **Visibilidad SPT:** $\eta_j = 1 / \sum_k p_{j,k}$. Prefiere los trabajos de menor
+  tiempo total.
+- **Feromona inicial:** $\tau_0 = 1 / (n \cdot C_{max}^{SPT})$.
+- **Construcción:** cada hormiga parte en un trabajo al azar.
+  - Con probabilidad $q_0$ elige el máximo $\tau_{ij}\,\eta_j^{\beta}$.
+  - Si no, sortea con probabilidad proporcional a ese valor (ruleta).
+- **Actualización local**, en cada arista recorrida: $\tau_{ij} \leftarrow (1-\alpha)\tau_{ij} + \alpha\tau_0$.
+- **Actualización global**, solo en las aristas de la mejor secuencia global:
+  $\tau_{ij} \leftarrow (1-\alpha)\tau_{ij} + \alpha / C_{max}^{mejor}$.
+
+## Resultados
+
+Configuración:
+- Semillas 1 a 10. Mismo presupuesto para todos: 50 individuos u hormigas × 200 iteraciones.
+- AG/AM: pc = 0.8, pm = 0.1, frec_bl = 10.
+- ACS: α = 0.1, β = 1.0, q0 = 0.9.
+
+| Instancia | Alg | Mejor | Media ± desv | RPD medio | Tiempo medio |
+| :--- | :---: | ---: | ---: | ---: | ---: |
+| tai20_5 (UB 1278) | AG | 1297 | 1297.0 ± 0.0 | 1.49 % | 0.45 s |
+| | AM | 1278 | 1295.1 ± 6.0 | 1.34 % | 0.66 s |
+| | ACS | 1297 | 1316.3 ± 13.1 | 3.00 % | 1.58 s |
+| tai50_10 (UB 3025) | AG | 3122 | 3195.7 ± 34.5 | 5.64 % | 1.39 s |
+| | AM | 3070 | 3123.0 ± 29.4 | 3.24 % | 7.48 s |
+| | ACS | 3446 | 3467.2 ± 18.8 | 14.62 % | 5.14 s |
+| tai100_10 (UB 5770) | AG | 5970 | 6049.8 ± 57.0 | 4.85 % | 2.79 s |
+| | AM | 5826 | 5855.5 ± 28.0 | 1.48 % | 52.70 s |
+| | ACS | 6304 | 6330.8 ± 14.4 | 9.72 % | 12.62 s |
+
+- El AM obtiene el menor RPD en las tres instancias y alcanza el UB en tai20_5. Su costo
+  es el tiempo: en tai100_10 la búsqueda local multiplica unas 19 veces el tiempo del AG.
+- ACS es el más estable entre semillas en 50×10 y 100×10, pero converge temprano a
+  soluciones peores. La visibilidad SPT sola da secuencias con 15–25 % de RPD, así que
+  orienta poco hacia un buen makespan.
+
+**Decisiones de parámetros:**
+- **β = 1.0 en lugar de 2.0** (el valor del ejemplo del enunciado). Con 5 semillas en
+  tai20_5, el RPD medio fue:
+
+  | β | 0 | 1 | 2 | 5 |
+  | :--- | :---: | :---: | :---: | :---: |
+  | RPD medio | 3.19 % | 2.90 % | 3.35 % | 5.60 % |
+
+- **α = 0.1 en lugar de 1.0.** Con α = 1 cada actualización reemplazaría toda la feromona
+  acumulada y ACS perdería su memoria.
