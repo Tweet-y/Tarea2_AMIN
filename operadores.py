@@ -140,3 +140,24 @@ def mutacion_insercion(secuencia, rng):
     i, j = rng.sample(range(len(mutada)), 2)
     mutada.insert(j, mutada.pop(i))
     return mutada
+
+
+# ---------------------------------------------------------------- AM
+
+def busqueda_local_insercion(secuencia, p):
+    """Una pasada de busqueda local por insercion.
+
+    Cada trabajo se saca y se prueba en todas las posiciones; se queda en la de menor Cmax
+    solo si mejora. Devuelve (secuencia, cmax) y nunca empeora la entrada.
+    # ponytail: O(n^2) makespans por pasada (~2.6 s en 100x10); aceleracion de Taillard si el tiempo molesta.
+    """
+    mejor = list(secuencia)
+    mejor_cmax = makespan(mejor, p)
+    for trabajo in secuencia:
+        resto = [t for t in mejor if t != trabajo]
+        for pos in range(len(mejor)):
+            candidata = resto[:pos] + [trabajo] + resto[pos:]
+            cmax = makespan(candidata, p)
+            if cmax < mejor_cmax:
+                mejor, mejor_cmax = candidata, cmax
+    return mejor, mejor_cmax

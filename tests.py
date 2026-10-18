@@ -190,6 +190,32 @@ def test_ag_reproducible_y_elitista():
     assert all(a >= b for a, b in zip(historial, historial[1:]))  # Elitismo: nunca empeora.
 
 
+def test_busqueda_local_insercion():
+    # Con P_CHICA la secuencia [0, 1, 2] (Cmax 10) mejora moviendo el trabajo 0 al medio:
+    # [1, 0, 2] da 8, el optimo de esta instancia.
+    assert op.busqueda_local_insercion([0, 1, 2], P_CHICA) == ([1, 0, 2], 8)
+    assert op.busqueda_local_insercion([1, 0, 2], P_CHICA) == ([1, 0, 2], 8)  # Ya optima.
+
+    p, _ = op.leer_instancia("datos/tai20_5.txt")
+    rng = Random(0)
+    for _ in range(5):
+        inicial = rng.sample(range(20), 20)
+        mejorada, cmax = op.busqueda_local_insercion(inicial, p)
+        assert sorted(mejorada) == list(range(20))
+        assert cmax == op.makespan(mejorada, p) < op.makespan(inicial, p)
+
+
+def test_am_reproducible_y_mejora():
+    p, ub = op.leer_instancia("datos/tai20_5.txt")
+    sec, cmax, filas = ag.ejecutar_ag(p, ub, "tai20_5", 7, 20, 30, 0.8, 0.1, frec_bl=5)
+    sec2, cmax2, _ = ag.ejecutar_ag(p, ub, "tai20_5", 7, 20, 30, 0.8, 0.1, frec_bl=5)
+    assert sec == sec2 and cmax == cmax2
+    assert sorted(sec) == list(range(20)) and op.makespan(sec, p) == cmax
+    assert filas[0][0] == "AM" and "frec_bl=5" in filas[0][3]
+    historial = [fila[5] for fila in filas]
+    assert all(a >= b for a, b in zip(historial, historial[1:]))
+
+
 if __name__ == "__main__":
     pruebas = [f for nombre, f in list(globals().items()) if nombre.startswith("test_")]
     for prueba in pruebas:
