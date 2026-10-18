@@ -6,6 +6,7 @@ from random import Random
 import numpy as np
 
 import acs
+import ag
 import operadores as op
 
 
@@ -135,6 +136,58 @@ def test_acs_reproducible_y_monotono():
     historial = [fila[5] for fila in filas]
     assert len(filas) == 15 and historial[-1] == cmax
     assert all(a >= b for a, b in zip(historial, historial[1:]))  # Nunca empeora.
+
+
+def test_poblacion_inicial():
+    poblacion = op.poblacion_inicial(30, 8, Random(0))
+    assert len(poblacion) == 30
+    assert all(sorted(s) == list(range(8)) for s in poblacion)
+    assert len({tuple(s) for s in poblacion}) > 1
+
+
+def test_torneo():
+    poblacion, cmax = [[0], [1], [2]], [30, 10, 20]
+    rng = Random(0)
+    ganadores = [op.torneo(poblacion, cmax, rng)[0] for _ in range(3000)]
+    # k=3 con reposicion: P(mejor) = 1 - (2/3)^3 = 0.704; P(peor) = (1/3)^3 = 0.037.
+    assert abs(ganadores.count(1) / 3000 - 0.704) < 0.03
+    assert abs(ganadores.count(0) / 3000 - 0.037) < 0.015
+
+
+def test_cruce_ox():
+    padre1, padre2 = [0, 1, 2, 3, 4, 5, 6, 7], [7, 5, 3, 1, 6, 4, 2, 0]
+    rng = Random(0)
+    for _ in range(200):
+        hijo = op.cruce_ox(padre1, padre2, rng)
+        assert sorted(hijo) == list(range(8))
+        # Debe existir un tramo copiado de padre1 en su lugar; el resto sigue el orden de padre2.
+        assert any(hijo[a:b] == padre1[a:b]
+                   and hijo[:a] + hijo[b:] == [t for t in padre2 if t not in padre1[a:b]]
+                   for a in range(8) for b in range(a + 1, 9))
+    assert op.cruce_ox(padre1, padre1, rng) == padre1
+
+
+def test_mutacion_insercion():
+    original = list(range(10))
+    rng = Random(0)
+    for _ in range(200):
+        mutada = op.mutacion_insercion(original, rng)
+        assert sorted(mutada) == original and mutada != original
+        # Quitar el trabajo movido deja el resto en el mismo orden.
+        assert any([t for t in mutada if t != x] == [t for t in original if t != x]
+                   for x in original)
+    assert original == list(range(10))  # No modifica la entrada.
+
+
+def test_ag_reproducible_y_elitista():
+    p, ub = op.leer_instancia("datos/tai20_5.txt")
+    sec, cmax, filas = ag.ejecutar_ag(p, ub, "tai20_5", 7, 20, 30, 0.8, 0.1)
+    sec2, cmax2, _ = ag.ejecutar_ag(p, ub, "tai20_5", 7, 20, 30, 0.8, 0.1)
+    assert sec == sec2 and cmax == cmax2
+    assert sorted(sec) == list(range(20)) and op.makespan(sec, p) == cmax
+    historial = [fila[5] for fila in filas]
+    assert len(filas) == 30 and historial[-1] == cmax
+    assert all(a >= b for a, b in zip(historial, historial[1:]))  # Elitismo: nunca empeora.
 
 
 if __name__ == "__main__":

@@ -110,3 +110,33 @@ def actualizar_global(tau, secuencia, cmax, alfa):
     """Ec. 3: refuerza solo las aristas de la mejor secuencia, con delta = 1 / Cmax."""
     for i, j in zip(secuencia, secuencia[1:]):
         tau[i, j] = (1 - alfa) * tau[i, j] + alfa / cmax
+
+
+# ---------------------------------------------------------------- AG
+
+def poblacion_inicial(tam, n, rng):
+    """tam permutaciones aleatorias de los n trabajos."""
+    return [rng.sample(range(n), n) for _ in range(tam)]
+
+
+def torneo(poblacion, cmax, rng, k=3):
+    """Sortea k individuos (con reposicion) y devuelve el de menor Cmax, sin copiarlo."""
+    ganador = min((rng.randrange(len(poblacion)) for _ in range(k)), key=lambda i: cmax[i])
+    return poblacion[ganador]
+
+
+def cruce_ox(padre1, padre2, rng):
+    """Order Crossover: copia un tramo de padre1 en su lugar y completa los huecos,
+    de izquierda a derecha, con los trabajos restantes en el orden de padre2."""
+    a, b = sorted(rng.sample(range(len(padre1) + 1), 2))
+    tramo = padre1[a:b]
+    resto = [trabajo for trabajo in padre2 if trabajo not in tramo]
+    return resto[:a] + tramo + resto[a:]
+
+
+def mutacion_insercion(secuencia, rng):
+    """Saca un trabajo al azar y lo inserta en otra posicion al azar (devuelve copia)."""
+    mutada = list(secuencia)
+    i, j = rng.sample(range(len(mutada)), 2)
+    mutada.insert(j, mutada.pop(i))
+    return mutada
