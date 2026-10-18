@@ -1,0 +1,10 @@
+instancia,algoritmo,ub,mejor_cmax,media_cmax,desv_cmax,media_rpd,media_tiempo
+datos/tai20_5.txt,AG,1278,1297,1297,0.0,1.49,0.45
+datos/tai20_5.txt,AM,1278,1278,1295.1,6.0,1.34,0.66
+datos/tai20_5.txt,ACS,1278,1297,1316.3,13.1,3.0,1.58
+datos/tai50_10.txt,AG,3025,3122,3195.7,34.5,5.64,1.39
+datos/tai50_10.txt,AM,3025,3070,3123,29.4,3.24,7.48
+datos/tai50_10.txt,ACS,3025,3446,3467.2,18.8,14.62,5.14
+datos/tai100_10.txt,AG,5770,5970,6049.8,57.0,4.85,2.79
+datos/tai100_10.txt,AM,5770,5826,5855.5,28.0,1.48,52.7
+datos/tai100_10.txt,ACS,5770,6304,6330.8,14.4,9.72,12.62
