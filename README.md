@@ -26,10 +26,10 @@ acs.py           ACS: bucle del algoritmo y CLI
 operadores.py    Operadores: lectura, Cmax, RPD, CSV y operadores de AG, AM y ACS
 tests.py         Pruebas de los operadores y de los tres algoritmos
 experimentos.py  Batería comparativa: 3 algoritmos x 3 instancias x 10 semillas
-graficar.py      Curvas de convergencia a partir de experimentos.csv
+graficar.py      Convergencia y boxplots a partir de experimentos.csv
 datos/           Instancias de Taillard: tai20_5, tai50_10, tai100_10
 resultados/      CSV de corridas y resumen
-graficos/        Curvas de convergencia (PNG)
+graficos/        Convergencia y dispersión por instancia (PNG)
 ```
 
 Los scripts `ag.py`, `am.py` y `acs.py` describen **qué** hace cada algoritmo.
@@ -98,9 +98,13 @@ python graficar.py resultados/experimentos.csv
 - `experimentos.py` usa las semillas 1 a 10. Escribe `resultados/experimentos.csv` (todas
   las iteraciones) y `resultados/resumen.csv` (una fila por instancia y algoritmo), e
   imprime la tabla resumen.
-- `graficar.py` crea `graficos/convergencia_<instancia>.png`, con la media del mejor
-  $C_{max}$ por iteración. Úsalo con `experimentos.csv`: con un CSV de una sola corrida
-  sobrescribe la figura de esa instancia.
+- `graficar.py` crea dos figuras por instancia:
+  - `graficos/convergencia_<instancia>.png`: media del mejor $C_{max}$ por iteración.
+  - `graficos/dispersion_<instancia>.png`: boxplot del $C_{max}$ final de las semillas,
+    con cada semilla como punto.
+
+  Úsalo con `experimentos.csv`: con un CSV de una sola corrida sobrescribe las figuras
+  de esa instancia.
 
 ## Diseño de los algoritmos
 
