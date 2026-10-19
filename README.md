@@ -30,6 +30,7 @@ graficar.py      Convergencia y boxplots a partir de experimentos.csv
 datos/           Instancias de Taillard: tai20_5, tai50_10, tai100_10
 resultados/      CSV de corridas y resumen
 graficos/        Convergencia y dispersión por instancia (PNG)
+preproyecto_berlin52/  Preproyecto: ACS sobre TSP Berlin52 (código, resultados y gráficos; ver su README)
 ```
 
 Los scripts `ag.py`, `am.py` y `acs.py` describen **qué** hace cada algoritmo.
