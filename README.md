@@ -132,6 +132,20 @@ queda en la mejor si reduce el $C_{max}$.
 - **Actualización global**, solo en las aristas de la mejor secuencia global:
   $\tau_{ij} \leftarrow (1-\alpha)\tau_{ij} + \alpha / C_{max}^{mejor}$.
 
+**Por qué estas opciones** (el enunciado ofrece alternativas; se eligió una sola de cada una):
+- **Torneo k=3, no ruleta:** la ruleta exige transformar el Cmax, y como los Cmax de una
+  población son muy parecidos, las probabilidades quedan casi uniformes. El torneo solo
+  compara. k=3 da una presión moderada.
+- **OX, no PMX:** el Cmax depende del orden relativo de los trabajos, y OX lo conserva.
+- **Inserción, no intercambio:** mueve un solo trabajo y es el vecindario estándar del PFSP
+  (el de NEH). La búsqueda local del AM usa el mismo vecindario. 2-opt se descartó porque
+  invierte precedencias.
+- **BL una pasada, solo al mejor:** cada pasada cuesta n² evaluaciones; aplicarla a toda
+  la población multiplicaría ese costo por 50.
+- **Elitismo de 1:** es lo mínimo para que el mejor Cmax nunca empeore.
+- **SPT, no NEH reducida:** con NEH no se distinguiría su aporte del de la colonia.
+- **Refuerzo con la mejor global:** es la forma original del ACS (Dorigo y Gambardella, 1997).
+
 ## Resultados
 
 Configuración:
@@ -157,7 +171,9 @@ Configuración:
   soluciones peores. La visibilidad SPT sola da secuencias con 15–25 % de RPD, así que
   orienta poco hacia un buen makespan.
 
-**Decisiones de parámetros:**
+**Decisiones de parámetros:** el presupuesto 50×200, pc, pm, frec_bl y q0 son los valores
+del ejemplo del enunciado (q0 = 0.9 es también el valor de Dorigo y Gambardella) y no se
+calibraron. Solo cambian dos:
 - **β = 1.0 en lugar de 2.0** (el valor del ejemplo del enunciado). Con 5 semillas en
   tai20_5, el RPD medio fue:
 
